@@ -14,7 +14,7 @@ data "aws_iam_policy_document" "emr_on_eks" {
   statement {
     sid       = ""
     effect    = "Allow"
-    resources = ["arn:${data.aws_partition.current.partition}:s3:::*"]
+    resources = ["arn:${data.aws_partition.current.partition}:s3:::*","arn:${data.aws_partition.current.partition}:s3:::*/"]
 
     actions = [
       "s3:DeleteObject",

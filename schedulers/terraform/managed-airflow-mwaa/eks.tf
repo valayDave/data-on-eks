@@ -1,6 +1,14 @@
 #---------------------------------------------------------------
 # EKS Blueprints
 #---------------------------------------------------------------
+resource "random_string" "irsa_role_randomness" {
+  length           = 5
+  special          = false
+  lower = true
+  upper = false
+  numeric =  false
+  override_special = "/@£$"
+}
 module "eks_blueprints" {
   source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.15.0"
 
@@ -85,6 +93,19 @@ module "eks_blueprints" {
   }
 
   tags = local.tags
+}
+module "eks_irsa" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/irsa?ref=v4.15.0"
+  create_kubernetes_namespace = false
+  create_kubernetes_service_account = true
+  kubernetes_namespace = kubernetes_namespace_v1.mwaa.metadata[0].name
+  kubernetes_service_account = "metaflow-execution-account"
+  eks_oidc_provider_arn = module.eks_blueprints.eks_oidc_provider_arn
+  eks_cluster_id = module.eks_blueprints.eks_cluster_id
+  irsa_iam_policies =  [
+    aws_iam_policy.emr_on_eks.arn
+  ]
+  irsa_iam_role_name = "eks-mwaa-irsa-${random_string.irsa_role_randomness.result}"
 }
 
 #------------------------------------------------------------------------
